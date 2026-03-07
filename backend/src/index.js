@@ -8,9 +8,12 @@ import contactsRoutes from './routes/contactsRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import gmailRoutes from './routes/gmailRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import aiClassifierRoutes from './routes/aiClassifierRoutes.js';
+import feedbackRoutes from './routes/feedbackRoutes.js';
 
 // Load env variables
-dotenv.config();
+dotenv.config({ path: '../.env' });
+console.log("TESTING API KEY LOAD: ", process.env.OPENROUTER_API_KEY ? "EXISTS" : "UNDEFINED");
 
 const app = express();
 
@@ -71,7 +74,8 @@ export const db = {
       date: new Date(Date.now() - 49 * 3600000)
     }
   ],
-  contacts: []
+  contacts: [],
+  senderStats: {}
 };
 
 // Routes
@@ -80,6 +84,8 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/contacts', contactsRoutes);
 app.use('/api/gmail', gmailRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/ai', aiClassifierRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // Base route for health check
 app.get('/', (req, res) => {

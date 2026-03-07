@@ -9,7 +9,11 @@ const Login = () => {
 
   useEffect(() => {
     if (localStorage.getItem('user')) {
-      navigate('/dashboard');
+      if (!localStorage.getItem('user_priorities')) {
+        navigate('/onboarding');
+      } else {
+        navigate('/dashboard');
+      }
     }
   }, [navigate]);
 
@@ -36,8 +40,8 @@ const Login = () => {
 
       if (res.ok && data.token) {
         localStorage.setItem("user", JSON.stringify(data.user));
-        console.log("User stored in localStorage, navigating to /dashboard");
-        navigate("/dashboard");
+        console.log("User stored in localStorage, navigating to /onboarding");
+        navigate("/onboarding");
       } else {
         console.error("Login failed:", data.message || "Unknown API error");
         setError(data.message || "Failed to authenticate with the server.");

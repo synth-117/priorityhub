@@ -30,10 +30,31 @@ const PriorityFeed = ({ priorityFilter = "all" }) => {
         const data = response.data.data;
         const connected = response.data.connected;
 
+        const userPrioritiesStr = localStorage.getItem("user_priorities");
+        const userPriorities = userPrioritiesStr ? JSON.parse(userPrioritiesStr) : [];
+
+        // Apply score boosting based on user priorities matching the AI category
+        const enhancedData = data.map(email => {
+          let score = email.priorityScore || 0;
+          let isBoosted = false;
+          
+          if (email.category && userPriorities.map(p => p.toLowerCase()).includes(email.category.toLowerCase())) {
+            score += 30;
+            isBoosted = true;
+          }
+
+          return {
+            ...email,
+            priorityScore: score,
+            isBoosted,
+            matchedPriority: email.category
+          };
+        });
+
         // Categorize data based on Priority Score
-        const urgent = data.filter(item => item.priorityScore >= 90);
-        const important = data.filter(item => item.priorityScore >= 70 && item.priorityScore < 90);
-        const low = data.filter(item => item.priorityScore < 70);
+        const urgent = enhancedData.filter(item => item.priorityScore >= 90);
+        const important = enhancedData.filter(item => item.priorityScore >= 70 && item.priorityScore < 90);
+        const low = enhancedData.filter(item => item.priorityScore < 70);
 
         setNotifications({ urgent, important, low, connected });
         setLoading(false);

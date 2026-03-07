@@ -1,9 +1,10 @@
 import express from 'express';
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
+import axios from 'axios';
 import { db } from '../index.js';
 
-dotenv.config();
+dotenv.config({ path: '../.env' });
 
 const router = express.Router();
 
@@ -105,6 +106,30 @@ router.get('/emails', async (req, res) => {
       const from = headers.find(h => h.name === 'From')?.value || 'Unknown Sender';
       const date = headers.find(h => h.name === 'Date')?.value || new Date().toISOString();
 
+      const textForAi = subject + " " + (msgData.data.snippet || "");
+      let category = "other";
+      try {
+        const port = process.env.PORT || 5000;
+        const aiRes = await axios.post(`http://localhost:${port}/api/ai/classify`, { text: textForAi });
+        if (aiRes.data && aiRes.data.category) {
+          category = aiRes.data.category;
+        }
+      } catch (err) {
+        console.error(`AI Classification failed for email ${message.id}`);
+      }
+
+      // Algorithm: Base Score + Sender Interaction Context
+      let interactionScore = 0;
+      if (db.senderStats && db.senderStats[from]) {
+        const stats = db.senderStats[from];
+        interactionScore = (stats.opens * 5) + (stats.done * 2) - (stats.ignored * 3);
+      }
+      
+      let baseScore = Math.floor(Math.random() * 100);
+      let newScore = baseScore + interactionScore;
+      if (newScore > 100) newScore = 100;
+      if (newScore < 0) newScore = 0;
+
       formattedEmails.push({
         id: message.id,
         sourceId: message.id,
@@ -112,8 +137,10 @@ router.get('/emails', async (req, res) => {
         sender: from,
         subject: subject,
         snippet: msgData.data.snippet,
-        priorityScore: Math.floor(Math.random() * 100), // Simple mock scoring
-        date: new Date(date)
+        priorityScore: newScore,
+        interactionScore: interactionScore,
+        date: new Date(date),
+        category: category
       });
     }
 
@@ -126,7 +153,8 @@ router.get('/emails', async (req, res) => {
         subject: "Need proposal by today",
         snippet: "Please send over the updated proposal by EOD.",
         priorityScore: 94,
-        date: new Date()
+        date: new Date(),
+        category: "work"
       },
       {
         id: "mock-ig-1",
@@ -136,7 +164,8 @@ router.get('/emails', async (req, res) => {
         subject: "Let's collaborate",
         snippet: "Love your product, let us jump on a quick call.",
         priorityScore: 82,
-        date: new Date()
+        date: new Date(),
+        category: "social"
       },
       {
         id: "mock-sl-1",
@@ -146,7 +175,8 @@ router.get('/emails', async (req, res) => {
         subject: "Deploy successful",
         snippet: "Production deployment completed without errors.",
         priorityScore: 45,
-        date: new Date()
+        date: new Date(),
+        category: "work"
       }
     ];
 

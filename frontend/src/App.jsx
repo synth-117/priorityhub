@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Dashboard from './pages/Dashboard';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
+import Onboarding from './pages/Onboarding';
 import AllEmails from './pages/AllEmails';
 import ImportantContacts from './pages/ImportantContacts';
 import Settings from './pages/Settings';
@@ -12,6 +13,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/emails" element={<AllEmails />} />
           <Route path="/contacts" element={<ImportantContacts />} />

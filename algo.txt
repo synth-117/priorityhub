@@ -1,0 +1,57 @@
+# PriorityHub - Priority Algorithm & AI Architecture Details
+
+The PriorityHub prioritization system utilizes a robust multi-stage algorithm that blends baseline analytics, machine learning AI classification, and continuous user-interaction feedback to determine the exact priority of incoming notifications.
+
+## 1. The Mathematical Base Score
+Every incoming notification (e.g., from Gmail, Slack, WhatsApp) initially generates a base priority score. Currently, for the hackathon prototype, this is initialized as a random number between `0` and `100`. In a production environment, this would be computed by analyzing the length of the message, checking if the user is explicitly mentioned (e.g., `@name`), and parsing keywords like "Urgent" or "ASAP".
+
+---
+
+## 2. In-Memory User Interaction Learning 
+The backend continuously builds an interaction profile for every unique "sender" email address or handle using the `db.senderStats` object. 
+
+Whenever you click a button on the frontend ("Open", "Mark Done", or "Ignore"), a `/api/feedback` request is sent to the backend. The server permanently updates the counters for that sender.
+
+When a *new* email arrives, the algorithm calculates an **Interaction Score** based on those past behaviors using this formula:
+`interactionScore = (opens * 5) + (done * 2) - (ignored * 3)`
+
+The calculated `interactionScore` is immediately added to the base priority score. To ensure stability, the score is bounded so it never drops below 0 or exceeds 100.
+
+---
+
+## 3. AI Categorization Engine (OpenRouter)
+As the backend fetches emails from the Gmail API, it constructs a text payload combining the `Subject` and the `Snippet` of the message. 
+
+It executes a direct network call to `https://openrouter.ai/api/v1/chat/completions` using the `openai/gpt-4o-mini` model. The AI functions as a classifier, ingesting the context of the email and categorizing it precisely into one of six specific buckets:
+- `work`
+- `school`
+- `finance`
+- `travel`
+- `social`
+- `other`
+
+This highly accurate string label is natively appended to the email object before being shipped to your React frontend.
+
+---
+
+## 4. The Personalized User Boost
+During the "Onboarding" flow, the user selects categories that matter most to them (e.g., Work and Finance). These preferences are saved natively into the browser's `localStorage`.
+
+When `PriorityFeed.jsx` receives the payload from the backend, it algorithmically maps over the entire array. If the AI-determined category matches any of the user's selected priorities, the algorithm triggers a massive **+30 Priority Boost** and flags the notification as `isBoosted = true`.
+
+---
+
+## 5. The Sorting & Rendering Thresholds
+After the frontend finalizes the mathematical calculations, notifications are segmented into three distinct swimlanes based on their final `priorityScore`:
+- **Urgent Actions (🔥)**: Score >= 90
+- **Important (⚡)**: Score between 70 and 89
+- **Low Priority (📬)**: Score < 70
+
+If the item was pushed into a higher bracket via the Learning Algorithm interaction context or the User Category Boost, exact UI widgets render dynamically on the card to explicitly explain *why* it was boosted.
+
+---
+
+## 6. AI Contextual Summaries (OpenRouter)
+To optimize network bandwidth and OpenAI token usage limits, PriorityHub uses a strategic rendering guard within `NotificationCard.jsx`. 
+
+AI Summaries are **only** generated for notifications that achieved a final `priorityScore` of 80 or higher. For these critical items, the frontend executes a secondary network call to the `/api/ai/summary` route using OpenRouter to generate exactly "ONE short sentence explaining what action is needed," allowing the user to bypass reading the actual email entirely.

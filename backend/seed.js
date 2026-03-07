@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Notification from './src/models/Notification.js';
 
-dotenv.config();
+dotenv.config({ path: '../.env' });
 
 const mockNotifications = [
   // URGENT ITEMS (Scores 90-100)

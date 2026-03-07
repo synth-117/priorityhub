@@ -1,16 +1,11 @@
-import express from "express";
-import axios from "axios";
+import axios from 'axios';
+import dotenv from 'dotenv';
+dotenv.config({ path: '../.env' }); // load from root
 
-const router = express.Router();
-
-router.post("/summary", async (req, res) => {
+async function testSummary() {
+  console.log("USING KEY:", process.env.OPENROUTER_API_KEY);
   try {
-    const { text } = req.body;
-
-    if (!text) {
-      return res.json({ summary: "No content to summarize." });
-    }
-
+    const text = "Meeting at 5pm with the board members.";
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
@@ -35,19 +30,11 @@ router.post("/summary", async (req, res) => {
         }
       }
     );
-
-    let summary = "Summary unavailable";
-    
-    if (response.data && response.data.choices && response.data.choices[0] && response.data.choices[0].message) {
-      summary = response.data.choices[0].message.content.trim();
-    }
-
-    res.json({ summary });
-
+    console.log("SUCCESS:", response.data.choices[0].message.content);
   } catch (error) {
-    console.error("OpenRouter summary error:", error?.response?.data || error.message);
-    res.json({ summary: "Summary unavailable" });
+    console.error("ERROR:");
+    console.error(error.response ? error.response.data : error.message);
   }
-});
+}
 
-export default router;
+testSummary();

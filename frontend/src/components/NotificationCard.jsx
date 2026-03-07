@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Mail, Github, MessageSquare, Bot, ArrowRight, CheckCircle2, Calendar, Gamepad2, MessageCircle, Instagram, Slack, Bell } from 'lucide-react';
+import { Mail, Github, MessageSquare, Bot, ArrowRight, CheckCircle2, Calendar, Gamepad2, MessageCircle, Instagram, Slack, Bell, XCircle } from 'lucide-react';
+
 
 const getSourceIcon = (source) => {
   switch (source) {
@@ -39,6 +40,15 @@ const getScoreColor = (score) => {
   if (score >= 90) return 'text-red-600 bg-red-50 border-red-200';
   if (score >= 70) return 'text-amber-600 bg-amber-50 border-amber-200';
   return 'text-blue-600 bg-blue-50 border-blue-200';
+};
+
+const categoryEmojis = {
+  work: '💼 Work',
+  school: '🎓 School',
+  finance: '💰 Finance',
+  travel: '✈ Travel',
+  social: '💬 Social',
+  other: '📌 Other'
 };
 
 const NotificationCard = ({ data, category, compact = false, onDone }) => {
@@ -87,8 +97,23 @@ const NotificationCard = ({ data, category, compact = false, onDone }) => {
     setLoadingSummary(false);
   };
 
+  const sendFeedback = async (action) => {
+    const senderStr = data.senderEmail || data.sender;
+    if (!senderStr) return;
+    try {
+      await fetch('http://localhost:5000/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender: senderStr, action })
+      });
+    } catch (err) {
+      console.error("Feedback error", err);
+    }
+  };
+
   const handleOpen = (e) => {
     e.stopPropagation();
+    sendFeedback('open');
     let url = '#';
     if (data.source === 'gmail') url = `https://mail.google.com/mail/u/0/#inbox/${data.id}`;
     else if (data.source === 'whatsapp') url = `https://web.whatsapp.com/`;
@@ -99,6 +124,13 @@ const NotificationCard = ({ data, category, compact = false, onDone }) => {
 
   const handleDone = (e) => {
     e.stopPropagation();
+    sendFeedback('done');
+    if (onDone) onDone(data.id || data._id);
+  };
+
+  const handleIgnore = (e) => {
+    e.stopPropagation();
+    sendFeedback('ignore');
     if (onDone) onDone(data.id || data._id);
   };
 
@@ -116,6 +148,11 @@ const NotificationCard = ({ data, category, compact = false, onDone }) => {
             <span className="text-xs text-gray-400">{data.time}</span>
           </div>
           <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-1">{data.subject}</h3>
+          <div className="mt-1">
+             <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-800">
+               {categoryEmojis[data.category?.toLowerCase()] || categoryEmojis.other}
+             </span>
+          </div>
         </div>
       </div>
     );
@@ -149,9 +186,27 @@ const NotificationCard = ({ data, category, compact = false, onDone }) => {
             </div>
           </div>
 
-          <h3 className={`font-bold text-gray-900 mb-2 ${category === 'urgent' ? 'text-lg' : 'text-base'}`}>
+          {data.isBoosted && (
+            <p className="text-xs text-blue-600 font-medium mb-1.5">
+              Boosted because it matches your <span className="capitalize">{data.matchedPriority || data.category}</span> priority.
+            </p>
+          )}
+
+          {data.interactionScore > 0 && (
+            <p className="text-xs text-green-600 font-medium mb-1.5">
+              Boosted because you often open emails from this sender.
+            </p>
+          )}
+
+          <h3 className={`font-bold text-gray-900 mb-1 ${category === 'urgent' ? 'text-lg' : 'text-base'}`}>
             {data.subject}
           </h3>
+
+          <div className="mb-3">
+             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200">
+               {categoryEmojis[data.category?.toLowerCase()] || categoryEmojis.other}
+             </span>
+          </div>
 
           <div className="bg-gradient-to-r from-blue-50/50 to-indigo-50/30 rounded-xl p-4 border border-blue-50/50 relative">
             <Bot className="absolute top-4 right-4 w-5 h-5 text-blue-300 opacity-50" />
@@ -179,6 +234,12 @@ const NotificationCard = ({ data, category, compact = false, onDone }) => {
               className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors"
             >
               <CheckCircle2 className="w-4 h-4" /> Mark Done
+            </button>
+            <button 
+              onClick={handleIgnore}
+              className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <XCircle className="w-4 h-4" /> Ignore
             </button>
           </div>
         </div>

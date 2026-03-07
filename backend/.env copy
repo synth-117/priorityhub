@@ -1,0 +1,9 @@
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/priorityhub
+
+GOOGLE_CLIENT_ID=418061374202-a369i48dluae0nul315l9nclgku2iuka.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+GOOGLE_REDIRECT_URI=http://localhost:5000/api/gmail/callback
+
+# OpenAI Credentials
+OPENAI_API_KEY=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

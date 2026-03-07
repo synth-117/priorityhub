@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogIn, Loader2, AlertCircle } from "lucide-react";
+import { API_BASE } from "../config/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -23,8 +24,8 @@ const Login = () => {
     setError(null);
 
     try {
-      console.log("Sending POST request to /api/auth/login...");
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      console.log(`Sending POST request to ${API_BASE}/api/auth/login...`);
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

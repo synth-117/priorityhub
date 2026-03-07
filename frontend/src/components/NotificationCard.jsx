@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Mail, Github, MessageSquare, Bot, ArrowRight, CheckCircle2, Calendar, Gamepad2, MessageCircle, Instagram, Slack, Bell, XCircle } from 'lucide-react';
-
+import { API_BASE } from '../config/api';
 
 const getSourceIcon = (source) => {
   switch (source) {
@@ -78,7 +78,7 @@ const NotificationCard = ({ data, category, compact = false, onDone }) => {
 
     try {
       const text = data.subject + " " + (data.snippet || "");
-      const res = await fetch("http://localhost:5000/api/ai/summary", {
+      const res = await fetch(`${API_BASE}/api/ai/summary`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -101,7 +101,7 @@ const NotificationCard = ({ data, category, compact = false, onDone }) => {
     const senderStr = data.senderEmail || data.sender;
     if (!senderStr) return;
     try {
-      await fetch('http://localhost:5000/api/feedback', {
+      await fetch(`${API_BASE}/api/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sender: senderStr, action })

@@ -1,6 +1,7 @@
 import { Bell, Search, Menu, LogOut, LogIn } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE } from '../config/api';
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
@@ -20,7 +21,7 @@ const Navbar = () => {
 
   const logout = async () => {
     try {
-      await fetch('http://localhost:5000/api/auth/logout');
+      await fetch(`${API_BASE}/api/auth/logout`);
     } catch (err) {
       console.error('Logout request failed:', err);
     }

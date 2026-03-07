@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import NotificationCard from './NotificationCard';
+import { API_BASE } from '../config/api';
 
 const PriorityFeed = ({ priorityFilter = "all" }) => {
   const [notifications, setNotifications] = useState({
@@ -26,7 +27,7 @@ const PriorityFeed = ({ priorityFilter = "all" }) => {
       try {
         setLoading(true);
         // Replace with your actual backend URL/port
-        const response = await axios.get('http://localhost:5000/api/gmail/emails');
+        const response = await axios.get(`${API_BASE}/api/gmail/emails`);
         const data = response.data.data;
         const connected = response.data.connected;
 
@@ -96,7 +97,7 @@ const PriorityFeed = ({ priorityFilter = "all" }) => {
             <p className="text-blue-700 text-sm">You are currently seeing mock data. Connect your Gmail to process your real inbox.</p>
           </div>
           <button 
-            onClick={() => window.location.href = 'http://localhost:5000/api/gmail/connect'}
+            onClick={() => window.location.href = `${API_BASE}/api/gmail/connect`}
             className="whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-md transition-colors"
           >
             Connect Gmail
